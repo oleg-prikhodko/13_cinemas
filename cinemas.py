@@ -1,4 +1,5 @@
 import re
+import sys
 import urllib.parse
 
 import requests
@@ -78,8 +79,11 @@ def output_movies_to_console(movies, max_movies=10):
 
 
 if __name__ == "__main__":
-    html = fetch_afisha_page()
-    titles = parse_afisha_list(html)
-    movies = [(title, *fetch_movie_info(title)) for title in titles]
+    try:
+        html = fetch_afisha_page()
+        titles = parse_afisha_list(html)
+        movies = [(title, *fetch_movie_info(title)) for title in titles]
+    except (requests.RequestException, MovieNotFoundException) as err:
+        sys.exit(err)
     movies = sort_movies_by_rating(movies)
     output_movies_to_console(movies)
