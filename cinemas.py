@@ -48,7 +48,6 @@ def fetch_movie_info(movie_title):
         return rating_value, rating_count
 
     elif movie_title in page_title:
-        print("page title check")
         rating_value = soup.find("meta", attrs={"itemprop": "ratingValue"})[
             "content"
         ]
