@@ -43,10 +43,12 @@ def fetch_movie_info(movie_title):
             return "—", "—"
         rating = rating["title"].replace(non_breaking_space, "")
         match = re.search(r"(\d\.\d*) \((\d*)\)", rating)
-        rating_value = match.group(1)
-        rating_count = match.group(2)
-
+        value_group_index = 1
+        count_group_index = 2
+        rating_value = match.group(value_group_index)
+        rating_count = match.group(count_group_index)
         return rating_value, rating_count
+
     elif re.sub(r"«|»", "", movie_title) in page_title:
         rating_value = soup.find("meta", attrs={"itemprop": "ratingValue"})[
             "content"
@@ -73,7 +75,7 @@ def sort_movies_by_rating(movies):
 
 
 def output_movies_to_console(movies, max_movies=10):
-    movies = movies[:10]
+    movies = movies[:max_movies]
     for movie in movies:
         print("{} | {} | {}".format(*movie))
 
