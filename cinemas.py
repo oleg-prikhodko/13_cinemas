@@ -1,14 +1,10 @@
+import logging
 import re
 import sys
 import urllib.parse
 
 import requests
 from bs4 import BeautifulSoup
-
-
-class MovieNotFoundException(RuntimeError):
-    def __init__(self, title):
-        super().__init__("Could not find movie {}".format(title))
 
 
 def fetch_afisha_page(url="https://www.afisha.ru/msk/schedule_cinema/"):
@@ -24,6 +20,7 @@ def parse_afisha_list(raw_html):
 
 
 def fetch_movie_info(movie_title):
+    movie_title = re.sub(r"«|»", "", movie_title)
     url = "https://www.kinopoisk.ru/index.php"
     params = {"kp_query": movie_title}
     response = requests.get(url, params=params)
@@ -37,7 +34,8 @@ def fetch_movie_info(movie_title):
         link = most_wanted.select_one("div.info > p > a")
         title = link.string.strip()
         if title not in movie_title:
-            raise MovieNotFoundException(movie_title)
+            logging.warning("Could not find movie {}".format(movie_title))
+            return None
         rating = most_wanted.select_one(".rating")
         if rating is None:
             return "—", "—"
@@ -49,7 +47,8 @@ def fetch_movie_info(movie_title):
         rating_count = match.group(count_group_index)
         return rating_value, rating_count
 
-    elif re.sub(r"«|»", "", movie_title) in page_title:
+    elif movie_title in page_title:
+        print("page title check")
         rating_value = soup.find("meta", attrs={"itemprop": "ratingValue"})[
             "content"
         ]
@@ -59,7 +58,8 @@ def fetch_movie_info(movie_title):
         return rating_value, rating_count
 
     else:
-        raise MovieNotFoundException(movie_title)
+        logging.warning("Could not find movie {}".format(movie_title))
+        return None
 
 
 def sort_movies_by_rating(movies):
@@ -84,8 +84,15 @@ if __name__ == "__main__":
     try:
         html = fetch_afisha_page()
         titles = parse_afisha_list(html)
-        movies = [(title, *fetch_movie_info(title)) for title in titles]
-    except (requests.RequestException, MovieNotFoundException) as err:
+        movies = []
+        for title in titles:
+            movie_info = fetch_movie_info(title)
+            if movie_info is None:
+                continue
+            movies.append((title, *movie_info))
+
+    except requests.RequestException as err:
         sys.exit(err)
+
     movies = sort_movies_by_rating(movies)
     output_movies_to_console(movies)
