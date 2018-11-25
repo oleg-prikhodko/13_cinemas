@@ -54,12 +54,14 @@ def fetch_movie_info(movie_title):
         raise RuntimeError("Could not find movie with that title")
 
 
-def sort_movies(movies):
+def sort_movies_by_rating(movies):
+    default_rating = 0
+    rating_value_index = 1
     return sorted(
         movies,
-        key=lambda movie: float(movie[1])
-        if re.search(r"\d\.\d*", movie[1]) is not None
-        else 0,
+        key=lambda movie: float(movie[rating_value_index])
+        if re.search(r"\d\.\d*", movie[rating_value_index]) is not None
+        else default_rating,
         reverse=True,
     )
 
@@ -73,5 +75,5 @@ if __name__ == "__main__":
     html = fetch_afisha_page()
     titles = parse_afisha_list(html)
     movies = [(title, *fetch_movie_info(title)) for title in titles]
-    movies = sort_movies(movies)
+    movies = sort_movies_by_rating(movies)
     output_movies_to_console(movies)
