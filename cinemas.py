@@ -5,6 +5,11 @@ import requests
 from bs4 import BeautifulSoup
 
 
+class MovieNotFoundException(RuntimeError):
+    def __init__(self):
+        super().__init__("Could not find movie with that title")
+
+
 def fetch_afisha_page(url="https://www.afisha.ru/msk/schedule_cinema/"):
     response = requests.get(url)
     html = response.text
@@ -31,7 +36,7 @@ def fetch_movie_info(movie_title):
         link = most_wanted.select_one("div.info > p > a")
         title = link.string.strip()
         if title not in movie_title:
-            raise RuntimeError("Could not find movie with that title")
+            raise MovieNotFoundException()
         rating = most_wanted.select_one(".rating")
         if rating is None:
             return "—", "—"
@@ -51,7 +56,7 @@ def fetch_movie_info(movie_title):
         return rating_value, rating_count
 
     else:
-        raise RuntimeError("Could not find movie with that title")
+        raise MovieNotFoundException()
 
 
 def sort_movies_by_rating(movies):
