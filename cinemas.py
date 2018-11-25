@@ -66,7 +66,8 @@ def sort_movies_by_rating(movies):
     )
 
 
-def output_movies_to_console(movies):
+def output_movies_to_console(movies, max_movies=10):
+    movies = movies[:10]
     for movie in movies:
         print("{} | {} | {}".format(*movie))
 
